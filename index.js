@@ -17,6 +17,9 @@ const allowedOrigins = [
     'https://asij-fashons-client.vercel.app', // Production Vercel URL
 ];
 
+
+
+
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
