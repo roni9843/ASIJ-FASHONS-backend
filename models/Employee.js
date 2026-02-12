@@ -12,18 +12,37 @@ const employeeSchema = new mongoose.Schema({
     email: {
         type: String,
         unique: true,
+        sparse: true,
     },
-    phone: {
+    nid: {
         type: String,
         required: true,
     },
-    salary: { // This is Gross Salary
-        type: Number,
+    fathersName: {
+        type: String,
+        required: true, 
+    },
+    mothersName: {
+        type: String,
         required: true,
+    },
+    phones: [{
+        type: String,
+        required: true,
+    }],
+    salary: { // This is Gross Salary or Rate per Task/Hour
+        type: Number,
+        default: 0
     },
     basicSalary: {
         type: Number,
-        default: function() { return this.salary * 0.6; } // Basic is approx 60% of Gross in BD
+        default: function() { return this.salary * 0.6; } 
+    },
+    salaryType: {
+        type: String,
+        enum: ['Monthly', 'Task-wise'],
+        required: true,
+        default: 'Monthly'
     },
     joinDate: {
         type: Date,
@@ -33,6 +52,10 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         enum: ['Active', 'Inactive'],
         default: 'Active',
+    },
+    note: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true,

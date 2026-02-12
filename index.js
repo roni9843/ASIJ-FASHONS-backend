@@ -58,6 +58,8 @@ app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/buyers', require('./routes/buyerRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));
 app.use('/api/shipments', require('./routes/shipmentRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/tasks', require('./routes/taskRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Garments Management API is running');

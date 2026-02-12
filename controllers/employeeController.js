@@ -12,6 +12,20 @@ const getEmployees = async (req, res) => {
 
 const addEmployee = async (req, res) => {
     try {
+        if (!req.body.email) delete req.body.email; // Allow empty email to be sparse
+        const { phones, nid, fathersName, mothersName, name, salaryType, salary } = req.body;
+        
+        // Basic Validation
+        if (!phones || phones.length === 0 || !phones[0]) {
+            return res.status(400).json({ message: 'At least one phone number is required' });
+        }
+        if (!nid) return res.status(400).json({ message: 'NID is required' });
+        if (!fathersName) return res.status(400).json({ message: 'Father\'s Name is required' });
+        if (!mothersName) return res.status(400).json({ message: 'Mother\'s Name is required' });
+        if (!name) return res.status(400).json({ message: 'Name is required' });
+        if (!salaryType) return res.status(400).json({ message: 'Salary Type is required' });
+        if (salaryType === 'Monthly' && !salary) return res.status(400).json({ message: 'Salary amount is required for Monthly employees' });
+
         const employee = await Employee.create(req.body);
         res.status(201).json(employee);
     } catch (error) {
@@ -102,12 +116,12 @@ const calculatePayroll = async (req, res) => {
         let totalSalary = 0;
         let hourlyRate = 0;
 
-        if (employee.salaryType === 'Hourly') {
+        if (employee.salaryType === 'Task-wise') {
              // Calculate daily earnings based on daily rate or default rate
              attendanceLogs.forEach(log => {
                 if (log.status === 'Present') { // Only pay if present
                     const dailyRate = log.hourlyRate > 0 ? log.hourlyRate : employee.salary;
-                    basicSalary += dailyRate * 8; // Assuming 8hr shifts
+                    basicSalary += dailyRate * 8; // Assuming 8hr shifts or Task completion equivalent
                 }
              });
              hourlyRate = employee.salary; // Just for reference
@@ -218,4 +232,16 @@ const calculatePayroll = async (req, res) => {
     }
 };
 
-module.exports = { getEmployees, addEmployee, updateEmployee, deleteEmployee, markAttendance, getAttendance, calculatePayroll };
+
+
+const getEmployeeById = async (req, res) => {
+    try {
+        const employee = await Employee.findById(req.params.id);
+        if (!employee) return res.status(404).json({ message: 'Employee not found' });
+        res.json(employee);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getEmployees, getEmployeeById, addEmployee, updateEmployee, deleteEmployee, markAttendance, getAttendance, calculatePayroll };
