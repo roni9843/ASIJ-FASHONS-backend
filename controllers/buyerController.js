@@ -92,18 +92,44 @@ const getBuyerStats = async (req, res) => {
         // Get all purchases for this buyer
         const purchases = await Purchase.find({ buyer: buyerId });
         
-        // Calculate total target items
+        // Calculate total target items and collect item details
         let totalTargetQty = 0;
         let totalShippedQty = 0;
+        const itemsMap = {}; // Track each unique item
         
         purchases.forEach(purchase => {
             if (purchase.buyerTargetSet && purchase.buyerTargetSet.length > 0) {
                 purchase.buyerTargetSet.forEach(item => {
-                    totalTargetQty += item.qty || 0;
-                    totalShippedQty += item.shippedQty || 0;
+                    const itemName = item.item;
+                    const qty = item.qty || 0;
+                    const shipped = item.shippedQty || 0;
+                    
+                    totalTargetQty += qty;
+                    totalShippedQty += shipped;
+                    
+                    // Aggregate by item name
+                    if (!itemsMap[itemName]) {
+                        itemsMap[itemName] = {
+                            item: itemName,
+                            totalQty: 0,
+                            shippedQty: 0,
+                            unit: item.unit || 'pc'
+                        };
+                    }
+                    itemsMap[itemName].totalQty += qty;
+                    itemsMap[itemName].shippedQty += shipped;
                 });
             }
         });
+        
+        // Convert items map to array and calculate percentages
+        const items = Object.values(itemsMap).map(item => ({
+            ...item,
+            pendingQty: item.totalQty - item.shippedQty,
+            completionPercentage: item.totalQty > 0 
+                ? Math.round((item.shippedQty / item.totalQty) * 100) 
+                : 0
+        }));
         
         // Calculate completion percentage
         const completionPercentage = totalTargetQty > 0 
@@ -119,7 +145,8 @@ const getBuyerStats = async (req, res) => {
             totalShippedQty,
             pendingQty: totalTargetQty - totalShippedQty,
             completionPercentage,
-            shipmentCount
+            shipmentCount,
+            items // Include item-level details
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
