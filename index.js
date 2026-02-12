@@ -12,9 +12,12 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 
+// CORS - Accept all domains
 app.use(cors({
-    origin: true,
-    credentials: true
+    origin: '*', // Allow all origins
+    credentials: false, // Set to false when using wildcard origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(cookieParser());
