@@ -79,9 +79,57 @@ const deleteBuyer = async (req, res) => {
     }
 };
 
+// @desc    Get buyer statistics (purchases and shipments)
+// @route   GET /api/buyers/:id/stats
+// @access  Private
+const getBuyerStats = async (req, res) => {
+    try {
+        const Purchase = require('../models/Purchase');
+        const Shipment = require('../models/Shipment');
+        
+        const buyerId = req.params.id;
+        
+        // Get all purchases for this buyer
+        const purchases = await Purchase.find({ buyer: buyerId });
+        
+        // Calculate total target items
+        let totalTargetQty = 0;
+        let totalShippedQty = 0;
+        
+        purchases.forEach(purchase => {
+            if (purchase.buyerTargetSet && purchase.buyerTargetSet.length > 0) {
+                purchase.buyerTargetSet.forEach(item => {
+                    totalTargetQty += item.qty || 0;
+                    totalShippedQty += item.shippedQty || 0;
+                });
+            }
+        });
+        
+        // Calculate completion percentage
+        const completionPercentage = totalTargetQty > 0 
+            ? Math.round((totalShippedQty / totalTargetQty) * 100) 
+            : 0;
+        
+        // Get shipment count
+        const shipmentCount = await Shipment.countDocuments({ buyer: buyerId });
+        
+        res.json({
+            totalPurchases: purchases.length,
+            totalTargetQty,
+            totalShippedQty,
+            pendingQty: totalTargetQty - totalShippedQty,
+            completionPercentage,
+            shipmentCount
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createBuyer,
     getBuyers,
     updateBuyer,
-    deleteBuyer
+    deleteBuyer,
+    getBuyerStats
 };
