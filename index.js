@@ -9,17 +9,21 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-
-// CORS - Accept all domains
+// CORS - Must be FIRST middleware to handle preflight requests
 app.use(cors({
     origin: '*', // Allow all origins
     credentials: false, // Set to false when using wildcard origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
 
+// Handle preflight requests explicitly
+app.options('*', cors());
+
+// Other Middleware
+app.use(express.json());
 app.use(cookieParser());
 
 // Database Connection
