@@ -19,12 +19,6 @@ app.use(cors({
     optionsSuccessStatus: 204
 }));
 
-
-
-
-// Handle preflight requests explicitly
-app.options('*', cors());
-
 // Other Middleware
 app.use(express.json());
 app.use(cookieParser());
