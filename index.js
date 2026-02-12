@@ -9,10 +9,26 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS - Must be FIRST middleware to handle preflight requests
+// CORS - Allow specific origins
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://asij-fashons-client-hnqjd36f6-roni9843s-projects.vercel.app',
+    'https://asij-fashons-client.vercel.app', // Production Vercel URL
+];
+
 app.use(cors({
-    origin: '*', // Allow all origins
-    credentials: false, // Set to false when using wildcard origin
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(null, true); // Allow all for now, change to false to restrict
+        }
+    },
+    credentials: true, // Can use credentials with specific origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     preflightContinue: false,
