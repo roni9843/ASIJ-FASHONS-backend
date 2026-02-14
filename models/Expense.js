@@ -21,6 +21,44 @@ const expenseSchema = new mongoose.Schema({
         address: String,
         phones: [String]
     },
+    employee: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee'
+    },
+    externalProfile: {
+        type: mongoose.Schema.Types.ObjectId, // Link to ExternalProfile if applicable
+        ref: 'ExternalProfile'
+    },
+    expenseType: {
+        type: String,
+        enum: ['General', 'Employee', 'External'],
+        default: 'General'
+    },
+    details: {
+        purpose: String,
+        // For External Profile
+        recipientName: String,
+        recipientPhone: String,
+        recipientAddress: String,
+        
+        isLoan: {
+            type: Boolean,
+            default: false
+        },
+        isLoanReturn: {
+            type: Boolean,
+            default: false
+        },
+        loanAmount: {
+            type: Number,
+            default: 0
+        },
+        repaymentStatus: {
+            type: String,
+            enum: ['Pending', 'Paid', 'Partial'],
+            default: 'Pending'
+        }
+    },
     items: [{
         description: {
             type: String,

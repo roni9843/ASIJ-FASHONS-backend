@@ -61,6 +61,7 @@ app.use('/api/buyers', require('./routes/buyerRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));
 app.use('/api/shipments', require('./routes/shipmentRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/external-profiles', require('./routes/externalProfileRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
 app.get('/', (req, res) => {

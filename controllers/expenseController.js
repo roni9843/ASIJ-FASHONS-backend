@@ -5,7 +5,7 @@ const Expense = require('../models/Expense');
 // @access  Private/Admin
 const createExpense = async (req, res) => {
     try {
-        const { title, subtitle, description, items, discountType, discountValue, totalAmount, expenseDate, reference } = req.body;
+        const { title, subtitle, description, items, discountType, discountValue, totalAmount, expenseDate, reference, employee, externalProfile, expenseType, details } = req.body;
 
         const expense = await Expense.create({
             title,
@@ -16,7 +16,11 @@ const createExpense = async (req, res) => {
             discountValue,
             totalAmount,
             date: expenseDate,
-            reference
+            reference,
+            employee,
+            externalProfile,
+            expenseType,
+            details
         });
 
         res.status(201).json(expense);
@@ -30,7 +34,7 @@ const createExpense = async (req, res) => {
 // @access  Private/Admin
 const getExpenses = async (req, res) => {
     try {
-        const expenses = await Expense.find({}).sort({ createdAt: -1 });
+        const expenses = await Expense.find({}).populate('employee', 'name designation').populate('externalProfile').sort({ createdAt: -1 });
         res.json(expenses);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -42,7 +46,7 @@ const getExpenses = async (req, res) => {
 // @access  Private
 const getExpenseById = async (req, res) => {
     try {
-        const expense = await Expense.findById(req.params.id);
+        const expense = await Expense.findById(req.params.id).populate('employee', 'name designation').populate('externalProfile');
 
         if (expense) {
             res.json(expense);
@@ -59,7 +63,7 @@ const getExpenseById = async (req, res) => {
 // @access  Private/Admin
 const updateExpense = async (req, res) => {
     try {
-        const { title, subtitle, description, items, discountType, discountValue, totalAmount, expenseDate, reference } = req.body;
+        const { title, subtitle, description, items, discountType, discountValue, totalAmount, expenseDate, reference, employee, externalProfile, expenseType, details } = req.body;
 
         const expense = await Expense.findById(req.params.id);
 
@@ -73,6 +77,24 @@ const updateExpense = async (req, res) => {
             expense.totalAmount = totalAmount || expense.totalAmount;
             expense.date = expenseDate || expense.date;
             expense.reference = reference || expense.reference;
+            
+            // Validate/Clear fields if switching types
+            if (expenseType) expense.expenseType = expenseType;
+            if (employee !== undefined) expense.employee = employee; // Allow null
+            if (externalProfile !== undefined) expense.externalProfile = externalProfile; // Allow null
+            if (details) {
+                // Merge details or replace? Let's merge or replace depending on what's passed
+                // For simplicity, we'll assign properties if they exist in the incoming details object
+                expense.details = { ...expense.details, ...details };
+            }
+
+            // If switching back to General, maybe clear employee? 
+            // The user might not send 'employee: null' explicitly, so we trust the frontend sends the right state.
+            // But if expenseType is 'General', we should probably nullify employee
+            if (expenseType === 'General') {
+                expense.employee = null;
+                expense.details = {};
+            }
 
             const updatedExpense = await expense.save();
             res.json(updatedExpense);
